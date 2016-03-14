@@ -26,7 +26,6 @@ int nLines = 10;
 
 SolariDigitLine[] lines = new SolariDigitLine[nLines];
 
-int lastDraw;
 
 
 void createflaps() {
@@ -188,14 +187,40 @@ void setup() {
   for (int i = 0; i <nLines; i++) {
    lines[i] = new SolariDigitLine(nColumns);
   }
-  
-  lastDraw = millis();
-   
+     
  }
  
 int nextFramerateDisplay = 5000;
 int nextScreenChange = 0;
 int nextScreen = 0;
+
+boolean isDrawing = false;
+
+int z = 0;
+void drawLines() {
+    z = z + 1;
+    print("draw lines function called, z is " + z + "\n");
+    if (z < 200) {
+      print("z less than 10, draw\n");
+      for (int i=0; i<nLines; i++) {
+        pushMatrix();
+        translate(int (random(10)), flapHeight * 1.1 *i);
+         //translate(int (random(200)), int (random(200)));
+        //lines[i].display(millis() - lastDraw);
+        lines[i].display(0);
+        popMatrix();
+      }
+    } else {
+      z = 0;
+      if (nextScreen == 0) {
+        nextScreen = 1;  
+      } else {
+        nextScreen = 0;
+      }
+      drawLines();
+    }
+  isDrawing = true;
+}
 
 void draw() {
   
@@ -207,7 +232,6 @@ void draw() {
   translate(258, 30);
   popMatrix();
   
-  if (millis() > nextScreenChange) {
     if (nextScreen ==0) {
       showNum();
     } 
@@ -215,29 +239,15 @@ void draw() {
       showNum1();
     }
     
-    nextScreen = (nextScreen+1) %2;
-    nextScreenChange = millis()+ 8000;
-  }
-    
-    if (millis() > nextFramerateDisplay) {
-      println(frameRate);
-      nextFramerateDisplay = millis() + 5000;
-    }
+    //nextScreen = (nextScreen+1) %2;
   
   pushMatrix();
   digitsAnimating = 0;
   translate(mouseX, mouseY);
   
-  for (int i=0; i<nLines; i++) {
-    pushMatrix();
-    translate(int (random(10)), flapHeight * 1.1 *i);
-     //translate(int (random(200)), int (random(200)));
-    lines[i].display(millis() - lastDraw);
-    popMatrix();
-  }
+  drawLines();
   popMatrix();
   
-  lastDraw = millis();
 }
 
 
