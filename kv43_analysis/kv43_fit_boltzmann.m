@@ -3,6 +3,8 @@ function b = kv43_fit_boltzmann(V, y, direction)
 %                   or y = Ymax ./ (1 + exp((V - V50)/k))   direction = -1
 %   (k > 0 in both cases). Ymax is solved linearly; V50 and k by fminsearch.
 V = V(:); y = y(:);
+n = min(numel(V), numel(y));
+V = V(1:n); y = y(1:n);
 ok = isfinite(V) & isfinite(y);
 V = V(ok); y = y(ok);
 b = struct('V50', NaN, 'k', NaN, 'Ymax', NaN, 'r2', NaN);

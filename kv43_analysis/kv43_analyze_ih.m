@@ -11,10 +11,12 @@ function [rows, summ] = kv43_analyze_ih(rec, cfg, cellId)
 c   = cfg.ih;
 nSw = size(rec.I, 2);
 V   = c.V(:);
-if numel(V) < nSw
-    warning('kv43:ih', 'cfg.ih.V has %d voltages but cell %s has %d sweeps; padding with NaN.', ...
-        numel(V), cellId, nSw);
-    V(end+1:nSw) = NaN;
+if numel(V) ~= nSw
+    warning('kv43:ih', ['cfg.ih.V has %d voltages but cell %s (series %d) has %d sweeps. ' ...
+        'Using the first %d voltages - check that they match this cell''s protocol!'], ...
+        numel(V), cellId, rec.series, nSw, min(numel(V), nSw));
+    V(end+1:nSw) = NaN;          % too few voltages: pad
+    V = V(1:nSw);                % too many voltages: truncate
 end
 fs  = 1 / median(diff(rec.t));
 win = @(a, b) rec.t >= a & rec.t < b;
