@@ -11,6 +11,13 @@ kv = cfg.kv;
 fs = 1 / median(diff(t));
 i0 = find(t >= tOn, 1);
 i1 = find(t < tOff, 1, 'last');
+if isempty(i0) || isempty(i1) || i1 - i0 < round(0.06*fs)
+    % step (partly) outside the recorded sweep - protocol does not match cfg
+    r = empty_result(tOn, 'step_outside_sweep');
+    warning('kv43:step', 'Step %.3f-%.3f s is outside the recorded sweep (%.3f s long).', ...
+        tOn, tOff, t(end));
+    return
+end
 y  = I(i0:i1);
 ts = t(i0:i1) - tOn;
 
@@ -60,11 +67,15 @@ if r.amp >= kv.minAmp
     kFit = k;
     if r.clipped
         c = find(y(k:iEnd) >= cfg.clipWarn, 1, 'last');
-        kFit = k + c;
+        if ~isempty(c), kFit = k + c; end
     end
     j1 = min(numel(y), kFit + round(kv.fitDur*fs));
     tf = ts(kFit:j1);
     yf = y(kFit:j1);
+end
+if r.amp >= kv.minAmp && numel(tf) < 20
+    r.flag = strtrim([r.flag ' fit_window_too_short']);
+elseif r.amp >= kv.minAmp
     f1 = kv43_fit_exp(tf, yf, 1);
     r.tau   = f1.tau * 1e3;
     r.tauR2 = f1.r2;
@@ -83,4 +94,11 @@ if r.amp >= kv.minAmp
         r.fitY2  = f2.A(1)*exp(-tt/f2.tau(1)) + f2.A(2)*exp(-tt/f2.tau(2)) + f2.C;
     end
 end
+end
+
+function r = empty_result(tOn, flag)
+r = struct('tOn', tOn, 'peak', NaN, 'ss', NaN, 'amp', NaN, 'tPeak', NaN, ...
+    'saturated', false, 'clipped', false, 'tBlank', NaN, 'flag', flag, ...
+    'tau', NaN, 'tauR2', NaN, 'tauF', NaN, 'tauS', NaN, 'tauW', NaN, ...
+    'fracF', NaN, 'tau2R2', NaN, 'fitT', [], 'fitY', [], 'fitY2', []);
 end

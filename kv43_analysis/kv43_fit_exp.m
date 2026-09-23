@@ -5,6 +5,8 @@ function f = kv43_fit_exp(t, y, nExp)
 %   followed by fminbnd / fminsearch). Needs no toolboxes.
 %   t must start at (about) 0. Returns taus in the units of t.
 
+f = struct('tau', NaN, 'A', NaN, 'C', NaN, 'r2', NaN, 'tauW', NaN, 'ok', false);
+if numel(t) < 3*nExp + 1 || numel(t) ~= numel(y), return; end
 t = t(:) - t(1);
 y = y(:);
 % decimate long records to <= ~5000 points by block averaging (speed)
